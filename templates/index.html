@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Claude AI Image Studio</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b1020;
+    color: #f1f5f9;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 30px 15px;
+    border-bottom: 1px solid #293246;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+header p {
+    color: #94a3b8;
+}
+
+main {
+    max-width: 1250px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.panel {
+    background: #161e30;
+    border: 1px solid #303b53;
+    padding: 25px;
+    border-radius: 16px;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin: 18px 0 8px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+textarea, select {
+    width: 100%;
+    padding: 12px;
+    background: #0e1628;
+    border: 1px solid #45516b;
+    color: white;
+    border-radius: 9px;
+    font-size: 15px;
+}
+
+textarea {
+    min-height: 145px;
+    resize: vertical;
+}
+
+textarea:focus, select:focus {
+    outline: 2px solid #8b5cf6;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0;
+}
+
+.checkbox-row label {
+    margin: 0;
+}
+
+.checkbox-row input {
+    width: 18px;
+    height: 18px;
+    accent-color: #8b5cf6;
+}
+
+button, .download-btn {
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, #7c3aed, #2563eb);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    filter: brightness(1.12);
+}
+
+#status {
+    color: #c4b5fd;
+    margin-top: 18px;
+    text-align: center;
+}
+
+#error {
+    display: none;
+    margin-top: 14px;
+    padding: 13px;
+    color: #fecdd3;
+    background: #481d2c;
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+
+#placeholder {
+    padding: 55px 10px;
+    text-align: center;
+    color: #94a3b8;
+    border: 1px dashed #45516b;
+    border-radius: 12px;
+    line-height: 1.8;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.image-card {
+    background: #0e1628;
+    padding: 12px;
+    border: 1px solid #303b53;
+    border-radius: 12px;
+    min-width: 0;
+}
+
+.image-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.download-btn {
+    display: block;
+    margin-top: 12px;
+    padding: 13px;
+    background: #059669;
+    text-align: center;
+    text-decoration: none;
+}
+
+.download-btn:hover {
+    background: #047857;
+}
+
+#promptDetails {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 10px;
+    background: #0e1628;
+    overflow-wrap: anywhere;
+}
+
+#promptDetails p {
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+#modelInfo {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 15px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+@media (max-width: 850px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 500px) {
+    .gallery {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Claude AI Image Studio</h1>
+    <p>Claude Prompt Engineering + FLUX Image Generation</p>
+</header>
+
+<main>
+
+<section class="panel">
+
+    <h2>Create Images</h2>
+
+    <form id="generatorForm">
+
+        <label for="prompt">Image Description</label>
+
+        <textarea
+            id="prompt"
+            maxlength="2000"
+            placeholder="Example: A futuristic Formula 1 racing car at night in Tokyo, neon lights, cinematic photography"
+            required
+        ></textarea>
+
+        <label for="size">Image Size</label>
+
+        <select id="size">
+            <option value="square">Square</option>
+            <option value="square_hd">Square HD</option>
+            <option value="landscape_4_3">Landscape 4:3</option>
+            <option value="landscape_16_9">Landscape 16:9</option>
+            <option value="portrait_4_3">Portrait 3:4</option>
+            <option value="portrait_16_9">Portrait 9:16</option>
+        </select>
+
+        <label for="number">Number of Images</label>
+
+        <select id="number">
+            <option value="1">1 Image</option>
+            <option value="2">2 Images</option>
+            <option value="3">3 Images</option>
+            <option value="4">4 Images</option>
+        </select>
+
+        <div class="checkbox-row">
+            <input
+                type="checkbox"
+                id="useClaude"
+                checked
+            >
+            <label for="useClaude">
+                Enhance prompt with Claude
+            </label>
+        </div>
+
+        <button type="submit" id="generateBtn">
+            Generate Images
+        </button>
+
+    </form>
+
+    <p id="status" role="status" aria-live="polite"></p>
+    <div id="error" role="alert"></div>
+
+</section>
+
+<section class="panel">
+
+    <h2>Generated Images</h2>
+
+    <div id="placeholder">
+        Your generated images will appear here.
+        <br>
+        Enter a prompt and click Generate Images.
+    </div>
+
+    <div id="gallery" class="gallery"></div>
+
+    <div id="promptDetails">
+        <h3>Image Generation Details</h3>
+
+        <p>
+            <strong>Original Prompt:</strong>
+            <span id="originalPrompt"></span>
+        </p>
+
+        <p>
+            <strong>Final Prompt:</strong>
+            <span id="improvedPrompt"></span>
+        </p>
+
+        <p id="modelInfo"></p>
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+    Assignment #14 | Flask | Anthropic Claude | FLUX
+</footer>
+
+<script>
+const form = document.getElementById("generatorForm");
+const button = document.getElementById("generateBtn");
+const statusText = document.getElementById("status");
+const errorBox = document.getElementById("error");
+const gallery = document.getElementById("gallery");
+const placeholder = document.getElementById("placeholder");
+const details = document.getElementById("promptDetails");
+
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const prompt = document.getElementById("prompt").value.trim();
+    const size = document.getElementById("size").value;
+    const number = Number(document.getElementById("number").value);
+    const useClaude = document.getElementById("useClaude").checked;
+
+    errorBox.textContent = "";
+    errorBox.style.display = "none";
+
+    gallery.replaceChildren();
+    details.style.display = "none";
+    placeholder.style.display = "block";
+
+    if (!prompt) {
+        showError("Please enter an image prompt.");
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Generating...";
+
+    statusText.textContent = useClaude
+        ? "Claude is improving your prompt, then FLUX will generate your images..."
+        : "FLUX is generating your images...";
+
+    try {
+        const response = await fetch("/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+                size: size,
+                number: number,
+                use_claude: useClaude
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || "Image generation failed."
+            );
+        }
+
+        if (!data.images || data.images.length === 0) {
+            throw new Error("No images were returned.");
+        }
+
+        data.images.forEach((item, index) => {
+            const imageUrl =
+                "data:image/png;base64," + item.image;
+
+            const card = document.createElement("div");
+            card.className = "image-card";
+
+            const image = document.createElement("img");
+            image.src = imageUrl;
+            image.alt = "AI-generated image " + (index + 1);
+
+            const download = document.createElement("a");
+            download.className = "download-btn";
+            download.href = imageUrl;
+            download.download = item.filename;
+            download.textContent = "Download PNG";
+
+            card.appendChild(image);
+            card.appendChild(download);
+
+            gallery.appendChild(card);
+        });
+
+        placeholder.style.display = "none";
+        details.style.display = "block";
+
+        document.getElementById("originalPrompt").textContent =
+            data.original_prompt;
+
+        document.getElementById("improvedPrompt").textContent =
+            data.improved_prompt;
+
+        document.getElementById("modelInfo").textContent =
+            "Prompt Model: " +
+            (data.claude_used ? data.claude_model : "Disabled") +
+            " | Image Model: " + data.image_model +
+            " | Size: " + data.size;
+
+        statusText.textContent =
+            data.images.length + " image(s) generated successfully!";
+
+    } catch (error) {
+        showError(error.message);
+        statusText.textContent = "";
+    } finally {
+        button.disabled = false;
+        button.textContent = "Generate Images";
+    }
+});
+
+function showError(message) {
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+}
+</script>
+
+</body>
+</html>
